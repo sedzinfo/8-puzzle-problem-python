@@ -25,6 +25,63 @@ def _load_solver():
 solver = _load_solver()
 
 # ---------------------------------------------------------------------------
+# Path-tracking wrappers for algorithms that originally return only a status
+# ---------------------------------------------------------------------------
+def _bfs_path(start, goal):
+    """Tree BFS that records the full path to each state."""
+    from collections import deque
+    queue = deque([(start, [start])])
+    while queue:
+        node, path = queue.popleft()
+        if node == goal:
+            return path
+        for child in solver.children_of(node):
+            queue.append((child, path + [child]))
+    return None
+
+
+def _dfs_path(start, goal, max_trials=200_000):
+    """Graph DFS (visited pruning) that records the full path."""
+    stack = [(start, [start])]
+    visited = set()
+    trials = 0
+    while stack:
+        node, path = stack.pop()
+        if node in visited:
+            continue
+        if node == goal:
+            return path
+        visited.add(node)
+        trials += 1
+        if trials > max_trials:
+            return None
+        for child in solver.children_of(node):
+            if child not in visited:
+                stack.append((child, path + [child]))
+    return None
+
+
+def _dfs_bounded_path(start, goal, depth_limit=31):
+    """Depth-limited DFS that records the full path.
+    Default depth limit is 31 — the maximum for any solvable 8-puzzle.
+    """
+    stack = [(start, [start], 0)]
+    seen_best: dict = {}
+    while stack:
+        node, path, depth = stack.pop()
+        if node == goal:
+            return path
+        if depth >= depth_limit:
+            continue
+        if seen_best.get(node, depth_limit + 1) <= depth:
+            continue
+        seen_best[node] = depth
+        for child in solver.children_of(node):
+            stack.append((child, path + [child], depth + 1))
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 GOAL_STATE = ("1", "2", "3", "4", "5", "6", "7", "8", "b")
@@ -36,22 +93,22 @@ TILE_COLORS = {
     "7": "#F39C12", "8": "#2C3E50", "b": "#95A5A6",
 }
 
-# (display_label, solver_fn_name, returns_path, description)
+# (display_label, key, description)
 ALGORITHMS = [
-    ("A* Search",        "a_star",      True,
+    ("A* Search",        "a_star",
      "Optimal. Uses path cost + misplaced-tiles heuristic."),
-    ("Best-First",       "best",        True,
-     "Greedy by path length. Fast but may not be optimal."),
-    ("BFS Path Search",  "bfps",        True,
-     "Guaranteed shortest path. Can be slow for deep states."),
-    ("BFS Graph Search", "btgs",        True,
+    ("Best-First",       "best",
+     "Greedy by path length. Fast but not always optimal."),
+    ("BFS Graph Search", "btgs",
      "BFS with visited-set. Avoids cycles, finds shortest path."),
-    ("DFS Bounded",      "dfs_bounded", False,
-     "Depth-limited DFS. Only reports success/fail, no path."),
-    ("BFS (tree)",       "bfs",         False,
-     "Simple BFS without path tracking. Reports success/fail."),
-    ("DFS",              "dfs",         False,
-     "DFS with visited pruning. Reports success/fail, no path."),
+    ("BFS Path Search",  "bfps",
+     "Tree BFS with full path tracking. No cycle detection."),
+    ("BFS (tree)",       "bfs",
+     "Tree BFS without a visited-set. Can be very slow on hard states."),
+    ("DFS Bounded",      "dfs_bounded",
+     "Depth-limited DFS (limit = 31). Path is usually non-optimal."),
+    ("DFS",              "dfs",
+     "Graph DFS with visited pruning. WARNING: path can be thousands of steps long."),
 ]
 
 BG  = "#1A252F"
@@ -191,19 +248,15 @@ class App(tk.Tk):
         lf_algo.grid(row=0, column=1, padx=8, sticky="n")
 
         self._algo_var = tk.StringVar(value="a_star")
-        for label, key, has_path, _ in ALGORITHMS:
-            prefix = "★ " if has_path else "  "
+        for label, key, _ in ALGORITHMS:
             tk.Radiobutton(
-                lf_algo, text=prefix + label,
+                lf_algo, text=label,
                 variable=self._algo_var, value=key,
                 bg=PNL, fg=FG, selectcolor=BG,
                 activebackground=PNL, activeforeground=FG,
                 font=("Arial", 10),
                 command=self._on_algo_change,
             ).pack(anchor="w", pady=1)
-
-        tk.Label(lf_algo, text="★ = returns full solution path",
-                 bg=PNL, fg="#7F8C8D", font=("Arial", 8)).pack(anchor="w", pady=(4, 0))
 
         self._algo_desc = tk.Label(lf_algo, text="", wraplength=190, justify="left",
                                    bg=PNL, fg="#BDC3C7", font=("Arial", 9))
@@ -286,7 +339,7 @@ class App(tk.Tk):
 
     def _on_algo_change(self):
         key = self._algo_var.get()
-        for _, k, _, desc in ALGORITHMS:
+        for _, k, desc in ALGORITHMS:
             if k == key:
                 self._algo_desc.configure(text=desc)
                 break
@@ -309,12 +362,12 @@ class App(tk.Tk):
 
         def _run():
             try:
-                if key == "dfs":
-                    result = solver.dfs(start, goal, max_trials=200_000, verbose=False)
+                if key == "bfs":
+                    result = _bfs_path(start, goal)
+                elif key == "dfs":
+                    result = _dfs_path(start, goal, max_trials=200_000)
                 elif key == "dfs_bounded":
-                    result = solver.dfs_bounded(start, goal, depth_limit=30, verbose=False)
-                elif key == "bfs":
-                    result = solver.bfs(start, goal, verbose=False)
+                    result = _dfs_bounded_path(start, goal, depth_limit=31)
                 else:
                     fn = getattr(solver, key)
                     result = fn(start, goal, verbose=False)
@@ -339,10 +392,12 @@ class App(tk.Tk):
             moves = len(result) - 1
             self._status_var.set(f"✔ Solved in {moves} move{'s' if moves != 1 else ''}!")
             self._update_viewer()
-        elif isinstance(result, str):
-            self._status_var.set(f"Result: {result}")
-            messagebox.showinfo("Result", f"Algorithm returned: {result}\n\n"
-                                "(This algorithm does not produce a visual path.)")
+            if moves > 200:
+                messagebox.showinfo(
+                    "Long Path",
+                    f"This algorithm found a {moves}-step path.\n"
+                    "Use the navigation buttons or increase animation speed."
+                )
         else:
             self._status_var.set("No solution found.")
             messagebox.showwarning("No Solution",
