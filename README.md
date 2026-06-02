@@ -111,7 +111,7 @@ python3 8_puzzle_solver.py --algorithm btgs \
 
 # 8-Puzzle Solver GUI (Python)
 
-You can also try the graphical user interface
+You can also try the graphic user interface
 
 ```bash
 python3 8_puzzle_solver_gui.py 
