@@ -120,4 +120,4 @@ python3 8_puzzle_solver_gui.py
 
 # Screenshots
 
-![Alt text](https://raw.githubusercontent.com/sedzinfo/8-puzzle-problem-python/refs/heads/master/images/8_puzzle_solver.png)
+![Alt text](https://github.com/sedzinfo/8-puzzle-problem-python/blob/main/screenshot/8_puzzle_solver.png)
