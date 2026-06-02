@@ -108,3 +108,16 @@ python3 8_puzzle_solver.py --algorithm btgs \
   --start "1 2 3 4 b 5 6 7 8" \
   --goal "1 2 3 4 5 6 7 8 b"
 ```
+
+# 8-Puzzle Solver GUI (Python)
+
+You can also try the graphical user interface
+
+```bash
+python3 8_puzzle_solver_gui.py 
+```
+
+
+# Screenshots
+
+![Alt text](https://raw.githubusercontent.com/sedzinfo/8-puzzle-problem-python/refs/heads/master/images/8_puzzle_solver.png)
