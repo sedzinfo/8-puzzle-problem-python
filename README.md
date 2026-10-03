@@ -121,3 +121,14 @@ python3 8_puzzle_solver_gui.py
 # Screenshots
 
 ![Alt text](https://github.com/sedzinfo/8-puzzle-problem-python/blob/main/screenshot/8_puzzle_solver.png)
+
+![Stars](https://img.shields.io/github/stars/sedzinfo/8-puzzle-problem-python)
+![Watchers](https://img.shields.io/github/watchers/sedzinfo/8-puzzle-problem-python)
+![Repo Size](https://img.shields.io/github/repo-size/sedzinfo/8-puzzle-problem-python)
+![Open Issues](https://img.shields.io/github/issues/sedzinfo/8-puzzle-problem-python)
+![Forks](https://img.shields.io/github/forks/sedzinfo/8-puzzle-problem-python)
+![Last Commit](https://img.shields.io/github/last-commit/sedzinfo/8-puzzle-problem-python)
+![Contributors](https://img.shields.io/github/contributors/sedzinfo/8-puzzle-problem-python)
+![License](https://img.shields.io/github/license/sedzinfo/8-puzzle-problem-python)
+![Release](https://img.shields.io/github/v/release/sedzinfo/8-puzzle-problem-python)
+![Workflow Status](https://img.shields.io/github/actions/workflow/status/sedzinfo/8-puzzle-problem-python/main.yml)
