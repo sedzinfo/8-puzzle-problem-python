@@ -24,8 +24,15 @@ from tkinter import messagebox, ttk
 # ---------------------------------------------------------------------------
 # Load 8_puzzle_solver.py dynamically (filename starts with a digit)
 # ---------------------------------------------------------------------------
+def _resource(*parts):
+    """A file shipped with the app: next to this script, or, in the Windows executable built by
+    PyInstaller, in the folder the executable unpacks itself to (sys._MEIPASS)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, *parts)
+
+
 def _load_solver():
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "8_puzzle_solver.py")
+    path = _resource("8_puzzle_solver.py")
     spec = importlib.util.spec_from_file_location("puzzle_solver", path)
     mod = importlib.util.module_from_spec(spec)
     sys.modules["puzzle_solver"] = mod  # required so @dataclass can resolve cls.__module__
@@ -507,6 +514,11 @@ class App(tk.Tk):
         super().__init__()
         self.title("8-Puzzle Solver")
         self.resizable(False, False)
+        if sys.platform == "win32" and os.path.exists(_resource("assets", "icon.ico")):
+            try:
+                self.iconbitmap(default=_resource("assets", "icon.ico"))
+            except tk.TclError:
+                pass
         # pixel sizes follow the screen's DPI (1.0 at 96 dpi)
         self.ui_scale = max(1.0, float(self.tk.call("tk", "scaling")) / (96 / 72))
 
@@ -936,4 +948,21 @@ def _enable_dpi_awareness():
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     _enable_dpi_awareness()
-    App().mainloop()
+    app = App()
+    smoke = {"ok": False} if "--smoke-test" in sys.argv else None
+    if smoke is not None:
+        # used by the build workflow: open the window, solve the start puzzle, close;
+        # the exit code is 0 only if a solution was found
+        def _check():
+            if app._solving:
+                app.after(100, _check)
+                return
+            smoke["ok"] = bool(app._path)
+            app.destroy()
+
+        app.after(300, app._start_solve)
+        app.after(600, _check)
+        app.after(30_000, app.destroy)
+    app.mainloop()
+    if smoke is not None:
+        sys.exit(0 if smoke["ok"] else 1)
