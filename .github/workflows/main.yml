@@ -28,15 +28,23 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install PyInstaller
-        run: python -m pip install --upgrade pip pyinstaller
+      # PyInstaller is installed from source so that its bootloader (the start-up code of the .exe) is
+      # compiled here: antivirus programs often flag the prebuilt bootloader, which malware uses as well
+      - name: Install PyInstaller with a freshly compiled bootloader
+        env:
+          PYINSTALLER_COMPILE_BOOTLOADER: "1"
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --no-binary pyinstaller pyinstaller
 
-      # one self-contained .exe; the GUI loads 8_puzzle_solver.py at run time, so it is bundled as data
+      # one self-contained .exe; the GUI loads 8_puzzle_solver.py at run time, so it is bundled as data;
+      # the version file gives the .exe its file properties (name, description, author, version)
       - name: Build executable
         run: >
           pyinstaller --noconfirm --clean --onefile --windowed
           --name 8-puzzle-solver
           --icon assets/icon.ico
+          --version-file assets/version_info.txt
           --add-data "8_puzzle_solver.py;."
           --add-data "assets/icon.ico;assets"
           8_puzzle_solver_gui.py
@@ -63,7 +71,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          sha=$(sha256sum dist/8-puzzle-solver.exe | cut -d' ' -f1)
+          notes="Built automatically from main: the Windows executable of the GUI (8_puzzle_solver_gui.py).
+
+          SHA-256 of 8-puzzle-solver.exe: \`$sha\`
+
+          The executable is not signed. Some antivirus programs block new unsigned programs they have not seen before;
+          the hash above lets you check that the file is the one built here (for example on virustotal.com)."
           gh release delete latest --cleanup-tag --yes || true
           gh release create latest dist/8-puzzle-solver.exe \
-            --target "$GITHUB_SHA" --title "Latest build" \
-            --notes "Built automatically from main: the Windows executable of the GUI (8_puzzle_solver_gui.py)."
+            --target "$GITHUB_SHA" --title "Latest build" --notes "$notes"

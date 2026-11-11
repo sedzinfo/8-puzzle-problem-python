@@ -136,6 +136,9 @@ The GUI also runs on Windows without installing Python: download
 [8-puzzle-solver.exe](https://github.com/sedzinfo/8-puzzle-problem-python/releases/download/latest/8-puzzle-solver.exe)
 from the [latest release](https://github.com/sedzinfo/8-puzzle-problem-python/releases/tag/latest) and double-click it.
 The executable is not signed, so Windows SmartScreen may warn the first time it runs: choose More info, then Run anyway.
+Some antivirus programs also block or quarantine new unsigned programs they have not seen before.
+The release notes give the SHA-256 of the file, so you can check that it is the one built here
+(for example on [VirusTotal](https://www.virustotal.com)) before you restore it from quarantine or allow it.
 It is a single file that unpacks itself on start, so the first start can take a few seconds.
 
 The executable is built by the GitHub Actions workflow [main.yml](.github/workflows/main.yml) on every push to main
