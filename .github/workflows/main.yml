@@ -1,0 +1,69 @@
+name: Build Windows executable
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:                                        # only when the program itself changes
+      - "*.py"
+      - "assets/**"
+      - ".github/workflows/main.yml"
+  pull_request:                                   # build and test only, nothing is published
+  workflow_dispatch:                              # also allows a manual run from the Actions tab
+
+permissions:
+  contents: write                                 # needed to publish the release
+
+concurrency:
+  group: build-exe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pip pyinstaller
+
+      # one self-contained .exe; the GUI loads 8_puzzle_solver.py at run time, so it is bundled as data
+      - name: Build executable
+        run: >
+          pyinstaller --noconfirm --clean --onefile --windowed
+          --name 8-puzzle-solver
+          --icon assets/icon.ico
+          --add-data "8_puzzle_solver.py;."
+          --add-data "assets/icon.ico;assets"
+          8_puzzle_solver_gui.py
+
+      # opens the window, solves the start puzzle and closes; a non-zero exit code fails the build
+      - name: Smoke test
+        shell: pwsh
+        timeout-minutes: 3
+        run: |
+          $p = Start-Process -FilePath dist\8-puzzle-solver.exe -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "smoke test failed with exit code $($p.ExitCode)" }
+          "exe size: {0:N1} MB" -f ((Get-Item dist\8-puzzle-solver.exe).Length / 1MB)
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: 8-puzzle-solver-windows
+          path: dist/8-puzzle-solver.exe
+
+      # the .exe is not committed: it replaces the file of the release "latest",
+      # whose tag moves to the commit it was built from
+      - name: Publish the executable to the "latest" release
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest dist/8-puzzle-solver.exe \
+            --target "$GITHUB_SHA" --title "Latest build" \
+            --notes "Built automatically from main: the Windows executable of the GUI (8_puzzle_solver_gui.py)."

@@ -1,3 +1,7 @@
 __pycache__/
+# PyInstaller output (the executable is built by the workflow and published as a release)
+build/
+dist/
+*.spec
 .Rhistory
 .RData
