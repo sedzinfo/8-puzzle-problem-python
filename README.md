@@ -117,10 +117,29 @@ You can also try the graphic user interface
 python3 8_puzzle_solver_gui.py 
 ```
 
+It uses only the standard library (tkinter; on Debian/Ubuntu `sudo apt install python3-tk` if it is missing).
+Click a tile next to the empty slot to slide it, or press Shuffle; pick an algorithm and press Solve.
+Tiles already in their goal position turn green, and the solution plays back with sliding tiles.
+
+Each solve reports the number of moves, the time, and the number of states the algorithm explored,
+so the algorithms can be compared: on the same puzzle, for example, A* explored about 21,000 states
+where BFS graph search explored about 147,000, both finding the same 24-move solution.
+
+The window starts in the light or dark theme of the system; the button at the top right switches it.
+
+Keyboard: Enter solves, Space plays or pauses, Left / Right step through the solution, Home / End
+jump to its start / end, T switches the theme.
+
 
 # Screenshots
 
-![Alt text](https://github.com/sedzinfo/8-puzzle-problem-python/blob/main/screenshot/8_puzzle_solver.png)
+Dark theme:
+
+![8-puzzle solver, dark theme](https://github.com/sedzinfo/8-puzzle-problem-python/blob/main/screenshot/8_puzzle_solver.png)
+
+Light theme:
+
+![8-puzzle solver, light theme](https://github.com/sedzinfo/8-puzzle-problem-python/blob/main/screenshot/8_puzzle_solver_light.png)
 
 ![Stars](https://img.shields.io/github/stars/sedzinfo/8-puzzle-problem-python)
 ![Watchers](https://img.shields.io/github/watchers/sedzinfo/8-puzzle-problem-python)
