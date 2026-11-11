@@ -1,0 +1,31 @@
+# UTF-8
+# Windows file properties of 8-puzzle-solver.exe (PyInstaller --version-file).
+# An executable without them looks more suspicious to antivirus heuristics.
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(1, 0, 0, 0),
+    prodvers=(1, 0, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable(
+        '040904B0',
+        [StringStruct('CompanyName', 'Dimitrios Zacharatos'),
+         StringStruct('FileDescription', '8-Puzzle Solver'),
+         StringStruct('FileVersion', '1.0.0'),
+         StringStruct('InternalName', '8-puzzle-solver'),
+         StringStruct('LegalCopyright', 'Copyright (C) Dimitrios Zacharatos. GPL-3.0 license.'),
+         StringStruct('OriginalFilename', '8-puzzle-solver.exe'),
+         StringStruct('ProductName', '8-Puzzle Solver'),
+         StringStruct('ProductVersion', '1.0.0'),
+         StringStruct('Comments', 'https://github.com/sedzinfo/8-puzzle-problem-python')])
+    ]),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)
