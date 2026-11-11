@@ -130,6 +130,28 @@ The window starts in the light or dark theme of the system; the button at the to
 Keyboard: Enter solves, Space plays or pauses, Left / Right step through the solution, Home / End
 jump to its start / end, T switches the theme.
 
+## Windows executable
+
+The GUI also runs on Windows without installing Python: download
+[8-puzzle-solver.exe](https://github.com/sedzinfo/8-puzzle-problem-python/releases/download/latest/8-puzzle-solver.exe)
+from the [latest release](https://github.com/sedzinfo/8-puzzle-problem-python/releases/tag/latest) and double-click it.
+The executable is not signed, so Windows SmartScreen may warn the first time it runs: choose More info, then Run anyway.
+It is a single file that unpacks itself on start, so the first start can take a few seconds.
+
+The executable is built by the GitHub Actions workflow [main.yml](.github/workflows/main.yml) on every push to main
+that changes the program. The workflow builds it with PyInstaller on Windows, checks that it opens and solves a puzzle,
+and replaces the file in the "latest" release. Each run, including runs for pull requests, also keeps the executable
+as an artifact on its page under Actions.
+
+To build it yourself on Windows:
+
+```bash
+pip install pyinstaller
+pyinstaller --onefile --windowed --name 8-puzzle-solver --icon assets/icon.ico --add-data "8_puzzle_solver.py;." --add-data "assets/icon.ico;assets" 8_puzzle_solver_gui.py
+```
+
+The executable is written to dist/8-puzzle-solver.exe.
+
 
 # Screenshots
 
